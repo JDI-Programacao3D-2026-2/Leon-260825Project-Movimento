@@ -7,7 +7,9 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody rb;
     public GameObject elevator;
     private Vector3 elevatorDirection = Vector3.up;
+    private Vector3 direction = Vector3.zero;
     private bool isElevatorMoving = false;
+    private bool isJumping = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -15,10 +17,9 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();    
     }
 
-    // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
-        Vector3 direction = Vector3.zero;
+        direction = Vector3.zero;
 
         //pega a direção do movimento do jogador
         if (Keyboard.current[Key.W].isPressed)
@@ -38,11 +39,7 @@ public class PlayerMovement : MonoBehaviour
             direction -= transform.right;
         }
 
-        //usa waspressedthisframe para fazer o jogador pular
-        if (Keyboard.current[Key.Space].wasPressedThisFrame)
-        {
-            rb.AddForce(Vector3.up * 5f, ForceMode.Impulse);
-        }
+        direction = Vector3.ClampMagnitude(direction, 1f);
 
         //usa wasreleasedthisframe para fazer uma plataforma se mover
         if (Keyboard.current[Key.E].wasReleasedThisFrame)
@@ -58,7 +55,22 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        direction = Vector3.ClampMagnitude(direction, 1f);
+        if (Keyboard.current[Key.Space].wasPressedThisFrame && !isJumping)
+        {
+            isJumping = true;
+        }
+    }
+
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+
+        //usa waspressedthisframe para fazer o jogador pular
+        if (isJumping)
+        {
+            rb.AddForce(Vector3.up * 5f, ForceMode.Impulse);
+            isJumping = false;
+        }
 
         //faz o jogador se mover na direção correta
         rb.linearVelocity = new Vector3(direction.x * speed, rb.linearVelocity.y, direction.z * speed);
